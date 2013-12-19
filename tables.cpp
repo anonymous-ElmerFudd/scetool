@@ -52,9 +52,7 @@ id_to_name_t _control_info_types[] =
 id_to_name_t _optional_header_types[] = 
 {
 	{OPT_HEADER_TYPE_CAP_FLAGS, "Capability Flags"},
-#ifdef CONFIG_DUMP_INDIV_SEED
 	{OPT_HEADER_TYPE_INDIV_SEED, "Individuals Seed"},
-#endif
 	{0, NULL}
 };
 

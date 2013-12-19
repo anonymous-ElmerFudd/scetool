@@ -229,14 +229,12 @@ void _print_opt_header(FILE *fp, opt_header_t *oh)
 			fprintf(fp, " unknown_7 0x%08X\n", cf->unk7);
 		}
 		break;
-#ifdef CONFIG_DUMP_INDIV_SEED
 	case OPT_HEADER_TYPE_INDIV_SEED:
 		{
 			u8 *is = (u8 *)oh + sizeof(opt_header_t);
 			_hexdump(fp, " Seed", 0, is, oh->size - sizeof(opt_header_t), TRUE);
 		}
 		break;
-#endif
 	}
 }
 
@@ -425,12 +423,7 @@ BOOL self_print_info(FILE *fp, sce_buffer_ctxt_t *ctxt)
 	{
 		LIST_FOREACH(iter, ctxt->self.ohs)
 		{
-#ifndef CONFIG_DUMP_INDIV_SEED
-			if(((opt_header_t *)iter->value)->type != OPT_HEADER_TYPE_INDIV_SEED)
-				_print_opt_header(fp, (opt_header_t *)iter->value);
-#else
 			_print_opt_header(fp, (opt_header_t *)iter->value);
-#endif
 		}
 	}
 
@@ -853,10 +846,9 @@ static BOOL _create_optional_headers(sce_buffer_ctxt_t *ctxt, self_config_t *sco
 
 			u8 *is = (u8 *)oh + sizeof(opt_header_t);
 			memset(is, 0, 0x100);
-#ifdef CONFIG_CUSTOM_INDIV_SEED
+
 			if(sconf->indiv_seed != NULL)
 				memcpy(is, sconf->indiv_seed, sconf->indiv_seed_size);
-#endif
 			
 			list_add_back(ctxt->self.ohs, oh);
 		}
@@ -1066,10 +1058,8 @@ BOOL self_build_self(sce_buffer_ctxt_t *ctxt, self_config_t *sconf)
 		return FALSE;
 	}
 
-#ifdef CONFIG_CUSTOM_INDIV_SEED
 	if(sconf->indiv_seed != NULL && sconf->self_type != SELF_TYPE_ISO)
 		printf("[*] Warning: Skipping individuals seed for non-ISO SELF.\n");
-#endif
 
 	//Create optional headers.
 	if(_create_optional_headers(ctxt, sconf) == FALSE)

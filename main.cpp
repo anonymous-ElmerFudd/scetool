@@ -73,9 +73,7 @@ s8 *_fw_version = NULL;
 s8 *_add_shdrs = NULL;
 s8 *_ctrl_flags = NULL;
 s8 *_cap_flags = NULL;
-#ifdef CONFIG_CUSTOM_INDIV_SEED
 s8 *_indiv_seed = NULL;
-#endif
 s8 *_license_type = NULL;
 s8 *_app_type = NULL;
 s8 *_content_id = NULL;
@@ -104,9 +102,7 @@ static s8 *_file_out = NULL;
 #define VAL_ADD_SHDRS '7'
 #define VAL_CTRL_FLAGS '8'
 #define VAL_CAP_FLAGS '9'
-#ifdef CONFIG_CUSTOM_INDIV_SEED
 #define VAL_INDIV_SEED 'a'
-#endif
 #define VAL_LICENSE_TYPE 'b'
 #define VAL_APP_TYPE 'c'
 #define VAL_CONTENT_ID 'f'
@@ -138,9 +134,7 @@ static struct option options[] =
 	{"self-add-shdrs", ARG_REQ, NULL, VAL_ADD_SHDRS},
 	{"self-ctrl-flags", ARG_REQ, NULL, VAL_CTRL_FLAGS},
 	{"self-cap-flags", ARG_REQ, NULL, VAL_CAP_FLAGS},
-#ifdef CONFIG_CUSTOM_INDIV_SEED
 	{"self-indiv-seed", ARG_REQ, NULL, VAL_INDIV_SEED},
-#endif
 	{"np-license-type", ARG_REQ, NULL, VAL_LICENSE_TYPE},
 	{"np-app-type", ARG_REQ, NULL, VAL_APP_TYPE},
 	{"np-content-id", ARG_REQ, NULL, VAL_CONTENT_ID},
@@ -192,9 +186,7 @@ static void print_usage()
 	printf(" -7, --self-add-shdrs   TRUE(default)/FALSE   Whether to add ELF shdrs or not.\n");
 	printf(" -8, --self-ctrl-flags  32 bytes              Override control flags.\n");
 	printf(" -9, --self-cap-flags   32 bytes              Override capability flags.\n");
-#ifdef CONFIG_CUSTOM_INDIV_SEED
 	printf(" -a, --self-indiv-seed  256 bytes             Individuals Seed (ISO only)\n");
-#endif
 	printf(" -b, --np-license-type  LOCAL/FREE            License Type\n");
 	printf(" -c, --np-app-type      SPRX/EXEC/USPRX/UEXEC App Type (U* for updates)\n");
 	printf(" -f, --np-content-id                          Content ID\n");
@@ -211,11 +203,8 @@ static void parse_args(int argc, char **argv)
 {
 	char c;
 
-#ifdef CONFIG_CUSTOM_INDIV_SEED
-	while((c = getopt_long(argc, argv, "hki:d:e:vrt:0:1:s:2:m:K:3:4:5:A:6:7:8:9:a:b:c:f:l:g:j:", options, NULL)) != -1)
-#else
-	while((c = getopt_long(argc, argv, "hki:w:d:e:vrt:0:1:s:2:m:K:3:4:5:A:6:7:8:9:b:c:f:l:g:j:z:", options, NULL)) != -1)
-#endif
+//	while((c = getopt_long(argc, argv, "hki:d:e:vrt:0:1:s:2:m:K:3:4:5:A:6:7:8:9:a:b:c:f:l:g:j:", options, NULL)) != -1)
+	while((c = getopt_long(argc, argv, "hki:w:d:e:vrt:0:1:s:2:m:K:3:4:5:A:6:7:8:a:9:b:c:f:l:g:j:z:", options, NULL)) != -1)
 	{
 		switch(c)
 		{
@@ -308,11 +297,9 @@ static void parse_args(int argc, char **argv)
 		case VAL_CAP_FLAGS:
 			_cap_flags = optarg;
 			break;
-#ifdef CONFIG_CUSTOM_INDIV_SEED
 		case VAL_INDIV_SEED:
 			_indiv_seed = optarg;
 			break;
-#endif
 		case VAL_LICENSE_TYPE:
 			_license_type = optarg;
 			break;

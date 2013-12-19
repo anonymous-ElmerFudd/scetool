@@ -38,9 +38,7 @@ extern s8 *_fw_version;
 extern s8 *_add_shdrs;
 extern s8 *_ctrl_flags;
 extern s8 *_cap_flags;
-#ifdef CONFIG_CUSTOM_INDIV_SEED
 extern s8 *_indiv_seed;
-#endif
 extern s8 *_license_type;
 extern s8 *_app_type;
 extern s8 *_content_id;
@@ -102,7 +100,6 @@ static BOOL _fill_self_config_template(s8 *file, self_config_t *sconf)
 				sconf->cap_flags = (u8 *)_memdup(((u8 *)oh) + sizeof(opt_header_t), 0x20);
 				_IF_VERBOSE(_hexdump(stdout, " Capability Flags", 0, sconf->cap_flags, 0x20, 0));
 
-#ifdef CONFIG_CUSTOM_INDIV_SEED
 				sconf->indiv_seed = NULL;
 				if(ctxt->self.ai->self_type == SELF_TYPE_ISO)
 				{
@@ -111,7 +108,6 @@ static BOOL _fill_self_config_template(s8 *file, self_config_t *sconf)
 					sconf->indiv_seed_size = oh->size - sizeof(opt_header_t);
 					_IF_VERBOSE(_hexdump(stdout, " Individuals Seed", 0, sconf->indiv_seed, sconf->indiv_seed_size, 0));
 				}
-#endif
 
 				sconf->add_shdrs = TRUE;
 				if(_add_shdrs != NULL)
@@ -225,7 +221,6 @@ static BOOL _fill_self_config(self_config_t *sconf)
 		sconf->cap_flags = _x_to_u8_buffer(_cap_flags);
 	}
 
-#ifdef CONFIG_CUSTOM_INDIV_SEED
 	sconf->indiv_seed = NULL;
 	if(_indiv_seed != NULL)
 	{
@@ -238,8 +233,6 @@ static BOOL _fill_self_config(self_config_t *sconf)
 		sconf->indiv_seed = _x_to_u8_buffer(_indiv_seed);
 		sconf->indiv_seed_size = len / 2;
 	}
-#endif
-
 	sconf->npdrm_config = NULL;
 
 	return TRUE;
@@ -295,7 +288,8 @@ static BOOL _fill_npdrm_config(self_config_t *sconf)
 
 	return TRUE;
 }
-
+// func. for dumping all information needed for 
+// PS3MFW 'SELF HEADER' INFO
 void frontend_print_infos_custom(s8 *file)
 {
 	const s8* self_name = NULL;	
@@ -305,6 +299,8 @@ void frontend_print_infos_custom(s8 *file)
 	ci_data_digest_40_t* pCtrlInfoDigest = NULL;
 	metadata_section_header_t* msh = NULL;
 	BOOL bIsCompressed = false;
+	BOOL bGotIndividualSeed = false;
+	u32 indivseed_size = 0;
 	u32 i = 0;
 
 	// read the file into the buffer
@@ -381,32 +377,23 @@ void frontend_print_infos_custom(s8 *file)
 	printf("Auth-ID:%016llX\n", ctxt->self.ai->auth_id);
 	printf("Vendor-ID:%016X\n", ctxt->self.ai->vendor_id);
 	printf("SELF-Type:%s\n", self_name);
-	printf("AppVersion:%s\n", sce_version_to_str(ctxt->self.ai->version));
+	printf("AppVersion:%s\n", sce_version_to_str(ctxt->self.ai->version));	
 
-	// iterate the ctrl headers, and print the FW version
+	// iterate the ctrl headers, and print control infos,
+	// and the FW VERSION
 	LIST_FOREACH(iter, ctxt->self.cis)
 	{
 		//_print_control_info(fp, (control_info_t *)iter->value);
 		pCtrlInfo = (control_info_t*)iter->value;
 		switch(pCtrlInfo->type)
 		{
-		case CONTROL_INFO_TYPE_DIGEST:
+			case CONTROL_INFO_TYPE_DIGEST:
 			{				
 				pCtrlInfoDigest = (ci_data_digest_40_t*)((u8*)pCtrlInfo + sizeof(control_info_t));
 				_es_ci_data_digest_40(pCtrlInfoDigest);
 				printf("FWVersion:%016X\n", pCtrlInfoDigest->fw_version);
 				break;
-			}
-		}
-	}// end LIST_FOREACH{}
-
-	// iterate the ctrl headers, and print control infos.
-	LIST_FOREACH(iter, ctxt->self.cis)
-	{
-		//_print_control_info(fp, (control_info_t *)iter->value);
-		pCtrlInfo = (control_info_t*)iter->value;
-		switch(pCtrlInfo->type)
-		{
+			}		
 			case CONTROL_INFO_TYPE_FLAGS:
 			{
 				pBuffer = ((u8*)pCtrlInfo + sizeof(control_info_t));						
@@ -424,7 +411,7 @@ void frontend_print_infos_custom(s8 *file)
 	{
 		pOptHeader = (opt_header_t*)iter->value;		
 		switch(pOptHeader->type)
-		{
+		{			
 			case OPT_HEADER_TYPE_CAP_FLAGS:
 			{				
 				pBuffer = (u8*)pOptHeader + sizeof(opt_header_t);						
@@ -433,9 +420,31 @@ void frontend_print_infos_custom(s8 *file)
 					printf("%02X", pBuffer[i]);
 				printf("\n");				
 				break;
-			}					
+			}
+			case OPT_HEADER_TYPE_INDIV_SEED:
+			{	// if we are of type 'ISO', dump the seed,
+				// otherwise, print 'FALSE' for the PS3MFW script
+				if(ctxt->self.ai->self_type == SELF_TYPE_ISO)
+				{						
+					bGotIndividualSeed = TRUE;
+					pBuffer = (u8*)pOptHeader + sizeof(opt_header_t);
+					indivseed_size = pOptHeader->size - sizeof(opt_header_t);
+					printf("IndivSeed:");
+					for (i=0; i < indivseed_size; i++) 
+						printf("%02X", pBuffer[i]);
+					printf("\n");	
+				} else {
+					printf("ERROR, Unhandled Indiv Seed Type!!\n");
+				}
+				break;
+			}
 		}// end switch{}
 	}// end FOREACH	
+
+	// if we didn't have an INDIV SEED, echo back
+	// it was 'NONE'
+	if (bGotIndividualSeed == FALSE) 
+		printf("IndivSeed:NONE\n");
 	
 	// loop through the metadata section headers, 
 	// check for "compressed" settings
@@ -462,6 +471,8 @@ exit:
 
 	return;
 }
+/***************************************************************************/
+
 
 void frontend_print_infos(s8 *file)
 {

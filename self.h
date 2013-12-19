@@ -49,12 +49,10 @@ typedef struct _self_config
 	u8 *ctrl_flags;
 	/*! Capability flags. */
 	u8 *cap_flags;
-#ifdef CONFIG_CUSTOM_INDIV_SEED
 	/*! Individuals seed. */
 	u8 *indiv_seed;
 	/*! Individuals seed size. */
 	u32 indiv_seed_size;
-#endif
 
 	/*! NPDRM config (used if not NULL). */
 	npdrm_config_t *npdrm_config;

@@ -7,7 +7,7 @@
 #define _CONFIG_H_
 
 /*! scetool base version. */
-#define SCETOOL_VERSION_BASE "0.3.1"
+#define SCETOOL_VERSION_BASE "0.4.0"
 
 /*! Private build. */
 //#define CONFIG_PRIVATE_BUILD
@@ -25,11 +25,20 @@
 	#define SCETOOL_VERSION SCETOOL_VERSION_BASE " <public build>"
 #endif
 
+// --- REMOVED THESE DEFINES FROM THE CODE --- //
 /*! Private build options. */
-#ifdef CONFIG_PRIVATE_BUILD
-	#define CONFIG_CUSTOM_INDIV_SEED
-	#define CONFIG_DUMP_INDIV_SEED
-#endif
+//#ifdef CONFIG_PRIVATE_BUILD
+//#define CONFIG_CUSTOM_INDIV_SEED
+//#endif
+// ------------------------------------------- //
+
+/*******************************************************/
+/* define if you want to dump the seed data to a file! */
+
+//#define CONFIG_DUMP_INDIV_SEED
+
+/*******************************************************/
+
 
 #if 0
 /*! scetool API. */
